@@ -28,9 +28,8 @@ Este proyecto permite **registrar productos** y **consultarlos** de manera senci
 
 2. Descomprime el proyecto en la carpeta seleccionada.  
 3. Enciende tu servidor local (XAMPP o Laragon).  
-4. Crea la base de datos con el nombre:  
-
-
+4. Crea una base de datos llamada `inventario` e importa el archivo `base_datos.sql`.
+5. Copia `config/conexion.ejemplo.php` como `config/conexion.php`. Si tu instalación usa otros datos, actualiza el servidor, usuario y contraseña en ese archivo.
 
 ---
 

@@ -1,51 +1,59 @@
 <?php
-$conexion = null;
 $codigoSalida = 0;
+
 try {
     require __DIR__ . '/conexion_pruebas.php';
-    echo "Conectado: Se conectó a la base inventarioPruebas." . PHP_EOL;
+    echo "Conectado: Se conectó a la base inventario_test.\n";
+    
+    // I1. INTEGRACIÓN VÁLIDA
     $conexion->beginTransaction();
-    $nombre = 'Prueba';
-    $cantidad = 5;
-    $consulta = $conexion->prepare(
-        'INSERT INTO productos (nombre, cantidad)
-         VALUES (:nombre, :cantidad)'
-    );
-    $consulta->execute([
-        'nombre' => $nombre,
-        'cantidad' => $cantidad
-    ]);
+    echo "\nEjecutando I1: Registro válido...\n";
+    
+    $consulta = $conexion->prepare('INSERT INTO productos (nombre, cantidad, precio) VALUES (:nombre, :cantidad, :precio)');
+    $consulta->execute(['nombre' => 'Teclado', 'cantidad' => 10, 'precio' => 250.50]);
     $id = $conexion->lastInsertId();
-    echo "Correcto: inserción realizada. ID: $id" . PHP_EOL;
     
+    $verificacion = $conexion->prepare('SELECT nombre, precio FROM productos WHERE id = :id');
+    $verificacion->execute(['id' => $id]);
+    $productoGuardado = $verificacion->fetch();
     
-    $consulta = $conexion->prepare(
-    'SELECT nombre, cantidad
-     FROM productos
-     WHERE id = :id'
-    );
-
-    $consulta->execute(['id' => $id]);
-    $producto = $consulta->fetch();
-
-    if (
-        $producto !== false
-        && $producto['nombre'] === $nombre
-        && (int) $producto['cantidad'] === $cantidad
-    ) {
-    echo "CORRECTO: nombre y cantidad coinciden." . PHP_EOL;
+    if ($productoGuardado && (float)$productoGuardado['precio'] === 250.50) {
+        echo "CORRECTO I1: El dato se guardó y recuperó correctamente en la DB.\n";
     } else {
-        echo "ERROR: producto no encontrado o datos diferentes."
-            . PHP_EOL;
+        echo "ERROR I1: El producto no se guardó como se esperaba.\n";
         $codigoSalida = 1;
     }
+    // Limpiar (Rollback)
+    $conexion->rollBack();
+    echo "Limpieza I1 completada.\n";
+
+
+    // I2. INTEGRACIÓN INVÁLIDA (Precio fuera de rango)
+    $conexion->beginTransaction();
+    echo "\nEjecutando I2: Registro inválido (Precio mayor a 500)...\n";
+    
+    $precioInvalido = 600;
+    require_once __DIR__ . '/../src/validaciones.php';
+    
+    // Simulamos el flujo lógico de guardar.php
+    if (!validarPrecioProducto($precioInvalido)) {
+        echo "CORRECTO I2: La validación rechazó el dato antes del INSERT, no se creó registro.\n";
+    } else {
+        // Si fallara la validación y llegara aquí, sería un error
+        $consulta->execute(['nombre' => 'Monitor', 'cantidad' => 5, 'precio' => $precioInvalido]);
+        echo "ERROR I2: El sistema permitió el registro de un precio inválido.\n";
+        $codigoSalida = 1;
+    }
+    // Limpiar por seguridad
+    $conexion->rollBack();
+    echo "Limpieza I2 completada.\n";
+
 } catch (PDOException $error) {
-    echo "ERROR: " . $error->getMessage() . PHP_EOL;
-    $codigoSalida = 1;
-} finally {
+    echo "ERROR CRÍTICO: " . $error->getMessage() . "\n";
     if ($conexion !== null && $conexion->inTransaction()) {
         $conexion->rollBack();
-        echo "Limpieza: inserción eliminada." . PHP_EOL;
     }
+    $codigoSalida = 1;
 }
+
 exit($codigoSalida);

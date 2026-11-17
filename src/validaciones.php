@@ -21,3 +21,15 @@ function validarCantidadProducto($cantidad): bool
         ['options' => ['min_range' => 1]]
     ) !== false;
 }
+
+function validarPrecioProducto($precio): bool {
+    // Verificar que sea numérico
+    if (!is_numeric($precio)) {
+        return false;
+    }
+    
+    $precioFloat = (float) $precio;
+    
+    // Regla: Número mayor que cero y menor o igual a 500
+    return $precioFloat > 0 && $precioFloat <= 500;
+}

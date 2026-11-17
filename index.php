@@ -40,14 +40,8 @@ $desplazamiento = ($paginaActual - 1) * $productosPorPagina;
 
 // Consultar solamente los productos de la página actual.
 $consulta = $conexion->prepare(
-    'SELECT
-        id,
-        nombre,
-        cantidad,
-        fecharegistro
-    FROM productos
-    ORDER BY id ASC
-    LIMIT :limite OFFSET :desplazamiento'
+    'SELECT id, nombre, cantidad, precio, fecharegistro 
+     FROM productos ORDER BY id ASC LIMIT :limite OFFSET :desplazamiento'
 );
 
 $consulta->bindValue(
@@ -148,6 +142,12 @@ $estado = $_GET['estado'] ?? '';
                 </div>
             <?php endif; ?>
 
+            <?php if ($estado === 'precio_invalido'): ?>
+                <div class="mensaje error">
+                    El precio debe ser mayor a 0 y máximo 500.
+                </div>
+            <?php endif; ?>
+
             <form action="guardar.php" method="POST">
                 <div class="campo">
                     <label for="nombre">
@@ -182,6 +182,19 @@ $estado = $_GET['estado'] ?? '';
                         required>
                 </div>
 
+                <div class="campo">
+                    <label for="precio">Precio</label>
+                    <input
+                        type="number"
+                        id="precio"
+                        name="precio"
+                        min="0.01"
+                        max="500"
+                        step="0.01"
+                        placeholder="Ejemplo: 150.50"
+                        required>
+                </div>
+
                 <button type="submit">
                     Registrar producto
                 </button>
@@ -205,6 +218,7 @@ $estado = $_GET['estado'] ?? '';
                             <th scope="col">ID</th>
                             <th scope="col">Producto</th>
                             <th scope="col">Cantidad</th>
+                            <th scope="col">Precio</th>
                             <th scope="col">Estado</th>
                             <th scope="col">Fecha</th>
                         </tr>
@@ -213,7 +227,7 @@ $estado = $_GET['estado'] ?? '';
                     <tbody>
                         <?php if ($productosEnPagina === 0): ?>
                             <tr>
-                                <td colspan="5" class="sin-registros">
+                                <td colspan="6" class="sin-registros">
                                     No hay productos registrados.
                                 </td>
                             </tr>
@@ -270,6 +284,10 @@ $estado = $_GET['estado'] ?? '';
                                 </td>
 
                                 <td>
+                                    $<?php echo number_format((float) $producto['precio'], 2); ?>
+                                </td>
+
+                                <td>
                                     <?php if ($producto['cantidad'] == 0): ?>
                                         <span class="estado agotado">
                                             Sin existencia
@@ -312,22 +330,19 @@ $estado = $_GET['estado'] ?? '';
 
                 <nav
                     class="paginacion"
-                    aria-label="Paginación de productos"
-                >
+                    aria-label="Paginación de productos">
                     <!-- Página anterior -->
                     <?php if ($paginaActual > 1): ?>
                         <a
                             href="?pagina=<?php echo $paginaActual - 1; ?>"
                             class="pagina-enlace"
-                            rel="prev"
-                        >
+                            rel="prev">
                             Anterior
                         </a>
                     <?php else: ?>
                         <span
                             class="pagina-enlace deshabilitada"
-                            aria-disabled="true"
-                        >
+                            aria-disabled="true">
                             Anterior
                         </span>
                     <?php endif; ?>
@@ -343,16 +358,14 @@ $estado = $_GET['estado'] ?? '';
                         <?php if ($numero === $paginaActual): ?>
                             <span
                                 class="pagina-enlace activa"
-                                aria-current="page"
-                            >
+                                aria-current="page">
                                 <?php echo $numero; ?>
                             </span>
                         <?php else: ?>
                             <a
                                 href="?pagina=<?php echo $numero; ?>"
                                 class="pagina-enlace"
-                                aria-label="Ir a la página <?php echo $numero; ?>"
-                            >
+                                aria-label="Ir a la página <?php echo $numero; ?>">
                                 <?php echo $numero; ?>
                             </a>
                         <?php endif; ?>
@@ -363,15 +376,13 @@ $estado = $_GET['estado'] ?? '';
                         <a
                             href="?pagina=<?php echo $paginaActual + 1; ?>"
                             class="pagina-enlace"
-                            rel="next"
-                        >
+                            rel="next">
                             Siguiente
                         </a>
                     <?php else: ?>
                         <span
                             class="pagina-enlace deshabilitada"
-                            aria-disabled="true"
-                        >
+                            aria-disabled="true">
                             Siguiente
                         </span>
                     <?php endif; ?>

@@ -1,6 +1,16 @@
 <?php
 
 $servidor = 'localhost';
-$baseDatos = 'TU_BASE_DE_DATOS';
-$usuario = 'TU_USUARIO';
-$contrasena = 'TU_CONTRASEÑA';
+$baseDatos = 'inventario';
+$usuario = 'root';
+$contrasena = '';
+
+$conexion = new PDO(
+    "mysql:host=$servidor;dbname=$baseDatos;charset=utf8mb4",
+    $usuario,
+    $contrasena,
+    [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+    ]
+);
